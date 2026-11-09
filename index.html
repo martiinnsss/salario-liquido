@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Salário Líquido 2026</title>
+<meta name="description" content="Calcula o teu salário líquido em Portugal em 2026: IRS, Segurança Social e subsídio de refeição.">
+<style>
+  :root { --fundo:#0f1114; --cartao:#181b20; --linha:#2b2f37; --texto:#eef0f3; --suave:#8d95a3;
+          --acento:#4fd1a5; --azul:#7aa7ff; --vermelho:#ff8a80; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--fundo);
+         color:var(--texto); line-height:1.5; }
+  main { max-width: 920px; margin:0 auto; padding: 2rem 1.25rem 4rem; }
+  h1 { margin:0; font-size:1.65rem; }
+  .sub { color:var(--suave); margin:.3rem 0 1.5rem; }
+  .grelha { display:grid; grid-template-columns: 1fr 1.1fr; gap:1rem; align-items:start; }
+  @media (max-width: 760px) { .grelha { grid-template-columns: 1fr; } }
+  .cartao { background:var(--cartao); border:1px solid var(--linha); border-radius:14px; padding:1.25rem; }
+  label { font-size:.8rem; color:var(--suave); display:block; margin:.9rem 0 .3rem; }
+  label:first-child { margin-top:0; }
+  input, select { width:100%; padding:.65rem .7rem; border-radius:8px; border:1px solid var(--linha);
+                  background:var(--fundo); color:var(--texto); font-size:1rem; }
+  .duas { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
+  .seg { display:flex; gap:.4rem; flex-wrap:wrap; }
+  .seg button { flex:1; padding:.55rem .6rem; border-radius:8px; border:1px solid var(--linha); background:var(--fundo);
+                color:var(--suave); cursor:pointer; font-size:.88rem; }
+  .seg button.on { border-color:var(--acento); color:var(--texto); background:#14271f; }
+  .destaque { text-align:center; padding:.5rem 0 1rem; border-bottom:1px solid var(--linha); margin-bottom:1rem; }
+  .destaque span { color:var(--suave); font-size:.85rem; }
+  .destaque b { display:block; font-size:2.6rem; color:var(--acento); font-variant-numeric: tabular-nums; line-height:1.15; }
+  .barra { display:flex; height:12px; border-radius:6px; overflow:hidden; margin:.75rem 0 .4rem; background:var(--linha); }
+  .barra i { display:block; height:100%; }
+  .legenda { display:flex; gap:1rem; flex-wrap:wrap; font-size:.78rem; color:var(--suave); }
+  .legenda span::before { content:""; display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:.35rem; background:var(--c); }
+  table { width:100%; border-collapse:collapse; font-size:.93rem; margin-top:.5rem; }
+  td { padding:.5rem .2rem; border-bottom:1px solid var(--linha); }
+  td:last-child { text-align:right; font-variant-numeric: tabular-nums; }
+  tr.total td { font-weight:700; border-bottom:0; }
+  .menos { color:var(--vermelho); }
+  h2 { font-size:.95rem; margin:1.25rem 0 .25rem; color:var(--suave); font-weight:600; }
+  .nota { font-size:.8rem; color:var(--suave); margin-top:1rem; }
+  .nota p { margin:.4rem 0; }
+  .nota a { color:var(--azul); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Calculadora de Salário Líquido 2026</h1>
+  <p class="sub">Quanto recebes realmente ao fim do mês, depois de IRS e Segurança Social. Portugal continental.</p>
+
+  <div class="grelha">
+    <div class="cartao">
+      <label for="bruto">Salário bruto mensal (€)</label>
+      <input id="bruto" type="number" min="0" step="10" value="1500">
+
+      <label>Situação</label>
+      <div class="seg" id="situacao">
+        <button data-v="solteiro" class="on">Não casado</button>
+        <button data-v="casado2">Casado, 2 titulares</button>
+        <button data-v="casado1">Casado, 1 titular</button>
+      </div>
+
+      <label for="dependentes">Dependentes (filhos a cargo)</label>
+      <input id="dependentes" type="number" min="0" max="10" step="1" value="0">
+
+      <div class="duas">
+        <div>
+          <label for="refeicao">Subsídio de refeição (€/dia)</label>
+          <input id="refeicao" type="number" min="0" step="0.05" value="0">
+        </div>
+        <div>
+          <label for="dias">Dias de trabalho por mês</label>
+          <input id="dias" type="number" min="0" max="31" step="1" value="22">
+        </div>
+      </div>
+
+      <label>Subsídio de refeição pago em</label>
+      <div class="seg" id="forma">
+        <button data-v="cartao" class="on">Cartão refeição</button>
+        <button data-v="dinheiro">Dinheiro</button>
+      </div>
+
+      <label>Subsídios de férias e de Natal</label>
+      <div class="seg" id="duodecimos">
+        <button data-v="nao" class="on">Pagos à parte (14 meses)</button>
+        <button data-v="sim">Em duodécimos</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <div class="destaque">
+        <span id="tituloLiquido">Salário líquido por mês</span>
+        <b id="liquido">—</b>
+        <span id="anual"></span>
+      </div>
+
+      <div class="barra" id="barra"></div>
+      <div class="legenda">
+        <span style="--c:var(--acento)">Recebes</span>
+        <span style="--c:#f59e6b">IRS</span>
+        <span style="--c:#9f8cff">Segurança Social</span>
+      </div>
+
+      <table id="detalhe"></table>
+
+      <h2>No ano</h2>
+      <table id="ano"></table>
+
+      <div class="nota">
+        <p><b>Como é calculado:</b> retenção na fonte de IRS pelas tabelas oficiais de 2026 para o continente
+          (<a href="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/tabela_ret_doclib/Pages/default.aspx" target="_blank" rel="noopener">Despacho n.º 233-A/2026</a>),
+          Segurança Social de 11% e subsídio de refeição isento até 10,46 €/dia em cartão ou 6,15 €/dia em dinheiro.</p>
+        <p>A retenção na fonte é um adiantamento: o imposto final só se apura na declaração anual de IRS, por isso podes vir a receber ou pagar a diferença.
+          Não inclui IRS Jovem, pessoas com deficiência, Açores, Madeira nem o ajuste excecional de novembro de 2026 (nesse mês retém-se só metade).</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Tabelas de retenção na fonte 2026 — continente, trabalho dependente (Despacho n.º 233-A/2026)
+// [limite, taxa, parcela a abater (número ou função de R)]
+const T_I_II = [
+  [920, 0, 0],
+  [1042, 0.125, R => 0.125 * 2.6 * (1273.85 - R)],
+  [1108, 0.157, R => 0.157 * 1.35 * (1554.83 - R)],
+  [1154, 0.157, 94.71],
+  [1212, 0.212, 158.18],
+  [1819, 0.241, 193.33],
+  [2119, 0.311, 320.66],
+  [2499, 0.349, 401.19],
+  [3305, 0.3836, 487.66],
+  [5547, 0.3969, 531.62],
+  [20221, 0.4495, 823.40],
+  [Infinity, 0.4717, 1272.31],
+];
+const T_III = [
+  [991, 0, 0],
+  [1042, 0.125, R => 0.125 * 2.6 * (1372.15 - R)],
+  [1108, 0.125, R => 0.125 * 1.35 * (1677.85 - R)],
+  [1119, 0.125, 96.17],
+  [1432, 0.1272, 98.64],
+  [1962, 0.157, 141.32],
+  [2240, 0.1938, 213.53],
+  [2773, 0.2277, 289.47],
+  [3389, 0.257, 370.72],
+  [5965, 0.2881, 476.12],
+  [20265, 0.3843, 1049.96],
+  [Infinity, 0.4717, 2821.13],
+];
+const POR_DEPENDENTE = { solteiro: 34.29, casado2: 21.43, casado1: 42.86 }; // Tabela II / I / III
+const SS = 0.11;
+const ISENTO_REFEICAO = { cartao: 10.46, dinheiro: 6.15 };
+
+const euro = v => v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+const estado = { situacao: "solteiro", forma: "cartao", duodecimos: "nao" };
+
+function retencao(R, situacao, dep) {
+  if (R <= 0) return 0;
+  const tabela = situacao === "casado1" ? T_III : T_I_II;
+  const linha = tabela.find(l => R <= l[0]);
+  if (linha[1] === 0) return 0;
+  const parcela = typeof linha[2] === "function" ? linha[2](R) : linha[2];
+  const adicional = dep > 0 ? POR_DEPENDENTE[situacao] * dep : 0;
+  return Math.max(0, R * linha[1] - parcela - adicional);
+}
+
+function calcular() {
+  const bruto = Math.max(0, +document.getElementById("bruto").value || 0);
+  const dep = Math.max(0, Math.floor(+document.getElementById("dependentes").value || 0));
+  const refDia = Math.max(0, +document.getElementById("refeicao").value || 0);
+  const dias = Math.max(0, +document.getElementById("dias").value || 0);
+
+  const refeicao = refDia * dias;
+  const refTributavel = Math.max(0, refDia - ISENTO_REFEICAO[estado.forma]) * dias;
+  const baseMes = bruto + refTributavel;                 // base de IRS e SS num mês normal
+
+  const irsMes = retencao(baseMes, estado.situacao, dep);
+  const ssMes = baseMes * SS;
+  const taxaEfetiva = baseMes > 0 ? irsMes / baseMes : 0;
+
+  // subsídios: retenção autónoma; em duodécimos aplica-se a taxa efetiva da remuneração mensal
+  const irsSubsidio = retencao(bruto, estado.situacao, dep);
+  const ssSubsidio = bruto * SS;
+
+  let linhas, liquidoMostrar, titulo;
+  if (estado.duodecimos === "sim") {
+    const duo = bruto / 6;                                // 2 subsídios / 12 meses
+    const irsDuo = duo * (bruto > 0 ? retencao(bruto, estado.situacao, dep) / bruto : 0);
+    const ssDuo = duo * SS;
+    const brutoTotal = bruto + duo;
+    liquidoMostrar = brutoTotal - irsMes - irsDuo - ssMes - ssDuo + refeicao - refTributavel;
+    titulo = "Salário líquido por mês (com duodécimos)";
+    linhas = [
+      ["Salário base", bruto],
+      ["Duodécimos dos subsídios", duo],
+      ...(refeicao ? [["Subsídio de refeição", refeicao]] : []),
+      ["IRS (retenção)", -(irsMes + irsDuo)],
+      ["Segurança Social (11%)", -(ssMes + ssDuo)],
+    ];
+    desenharBarra(liquidoMostrar, irsMes + irsDuo, ssMes + ssDuo);
+  } else {
+    liquidoMostrar = bruto - irsMes - ssMes + refeicao;
+    titulo = "Salário líquido por mês";
+    linhas = [
+      ["Salário base", bruto],
+      ...(refeicao ? [["Subsídio de refeição", refeicao]] : []),
+      ["IRS (retenção)", -irsMes],
+      ["Segurança Social (11%)", -ssMes],
+    ];
+    desenharBarra(liquidoMostrar, irsMes, ssMes);
+  }
+
+  // anual: 12 meses + 2 subsídios (refeição só em 11 meses, por causa das férias)
+  const liquidoSubsidio = bruto - irsSubsidio - ssSubsidio;
+  const brutoAno = bruto * 14 + refeicao * 11;
+  const irsSemRefeicao = retencao(bruto, estado.situacao, dep);   // mês de férias, sem subsídio de refeição
+  const irsAno = irsMes * 11 + irsSemRefeicao + irsSubsidio * 2;
+  const ssAno = (bruto * 14 + refTributavel * 11) * SS;
+  const liquidoAno = brutoAno - irsAno - ssAno;
+
+  document.getElementById("tituloLiquido").textContent = titulo;
+  document.getElementById("liquido").textContent = euro(liquidoMostrar);
+  document.getElementById("anual").textContent = estado.duodecimos === "sim"
+    ? `Taxa de retenção de IRS: ${(taxaEfetiva * 100).toFixed(1).replace(".", ",")}%`
+    : `Nos meses dos subsídios de férias e de Natal recebes mais ${euro(liquidoSubsidio)} · IRS: ${(taxaEfetiva * 100).toFixed(1).replace(".", ",")}%`;
+
+  document.getElementById("detalhe").innerHTML = linhas.map(([n, v]) => (v = v || 0,
+    `<tr><td>${n}</td><td class="${v < 0 ? "menos" : ""}">${v < 0 ? "− " + euro(-v) : euro(v)}</td></tr>`)).join("") +
+    `<tr class="total"><td>Recebes</td><td>${euro(liquidoMostrar)}</td></tr>`;
+
+  document.getElementById("ano").innerHTML = [
+    ["Bruto anual (14 meses + refeição)", brutoAno],
+    ["IRS retido", -irsAno],
+    ["Segurança Social", -ssAno],
+  ].map(([n, v]) => (v = v || 0, `<tr><td>${n}</td><td class="${v < 0 ? "menos" : ""}">${v < 0 ? "− " + euro(-v) : euro(v)}</td></tr>`)).join("") +
+    `<tr class="total"><td>Líquido anual</td><td>${euro(liquidoAno)}</td></tr>`;
+}
+
+function desenharBarra(liq, irs, ss) {
+  const t = liq + irs + ss || 1;
+  document.getElementById("barra").innerHTML =
+    `<i style="width:${liq / t * 100}%;background:var(--acento)"></i>` +
+    `<i style="width:${irs / t * 100}%;background:#f59e6b"></i>` +
+    `<i style="width:${ss / t * 100}%;background:#9f8cff"></i>`;
+}
+
+for (const grupo of ["situacao", "forma", "duodecimos"]) {
+  document.getElementById(grupo).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    estado[grupo] = b.dataset.v;
+    document.querySelectorAll(`#${grupo} button`).forEach(x => x.classList.toggle("on", x === b));
+    calcular();
+  });
+}
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", calcular));
+calcular();
+</script>
+</body>
+</html>
